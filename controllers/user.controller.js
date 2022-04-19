@@ -2,7 +2,7 @@ const { request, response } = require( 'express' );
 const bcryptjs = require('bcryptjs');
 const { validationResult } = require( 'express-validator' );
 
-//model User
+//user
 const User = require('../models/user.model');
 
 const getUser = ( req=request, res=response ) => {
@@ -36,15 +36,6 @@ const postUser = async( req=request, res=response ) => {
         role
     } = body;
 
-    const userExists = await User.findOne({email});
-
-    if ( userExists ) {
-        res.status(200).json({
-            msg: "Email already exists"
-        });
-        return ;    
-    }
-
     //hash password
     const salt = bcryptjs.genSaltSync(10);
     const hash = bcryptjs.hashSync( password, salt );
@@ -65,23 +56,28 @@ const postUser = async( req=request, res=response ) => {
 
     res.status(200).json({
         "msg": "postUser User saved successfully",
+        newUser
     });
 };
 
-const putUser = ( req=request, res=response ) => {
-    const query = req.query;
-    //podemos desestructurar las propiedades que vienen en los query params
-    const {
-        q,
-        name='Not name',
-        age='Not age'
-    } = query;
+const putUser = async( req=request, res=response ) => {
+
+    const { id } = req.params;
+
+    const { password, google, ...rest } = req.body;
+
+    if ( password ){        
+        //hash password
+        const salt = bcryptjs.genSaltSync(10);
+        rest.password = bcryptjs.hashSync( password, salt );
+    };
+
+    const user = await User.findByIdAndUpdate( id, rest );
+
 
     res.status(200).json({
-        "msg": "getUser success",
-        q,
-        name,
-        age
+        "msg": "putUser success",
+        user
     });
 };
 
