@@ -5,7 +5,7 @@ const { check } = require('express-validator');
 const { validateFields } = require('../middlewares/validate-fields');
 
 //helpers
-const { isRoleValidate, validateEmailExists } = require('../helpers/db-validators');
+const { isRoleValidate, validateEmailExists, findUserById } = require('../helpers/db-validators');
 
 const router = Router();
 
@@ -26,6 +26,16 @@ router.post('/', [
     check('role').custom( isRoleValidate ),
     validateFields
 ], postUser);
-router.put('/:id', putUser);
+router.put('/:id', [
+    check('id', 'Id is not a Mongo Id').isMongoId(),
+    check('id').custom( findUserById ),
+    check('role').custom( isRoleValidate ),
+    validateFields
+], putUser);
+router.delete('/:id', [
+    check('id', 'Id is not a Mongo Id').isMongoId(),
+    check('id').custom( findUserById ),
+    validateFields
+], deleteUser);
 
 module.exports = router;

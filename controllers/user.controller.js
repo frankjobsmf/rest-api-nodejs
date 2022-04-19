@@ -5,21 +5,22 @@ const { validationResult } = require( 'express-validator' );
 //user
 const User = require('../models/user.model');
 
-const getUser = ( req=request, res=response ) => {
-    const query = req.query;
-    //podemos desestructurar las propiedades que vienen en los query params
-    const {
-        q,
-        name='Not name',
-        age='Not age'
-    } = query;
+const getUser = async ( req=request, res=response ) => {
 
-    res.status(200).json({
-        "msg": "getUser success",
-        q,
-        name,
-        age
-    });
+    const query = { state: true };
+
+    const { limit = 5, since = 0 } = req.query;
+    // const total = await User.countDocuments(query);
+    // const users = await User.find(query).skip( Number( since ) ).limit( Number( limit ) );
+
+    const [ total, users ] = await Promise.all([
+        User.countDocuments(query),
+        User.find(query).skip( Number( since ) ).limit( Number( limit ) )
+
+    ])
+
+    res.json({ total, users });
+
 };
 
 const postUser = async( req=request, res=response ) => {
@@ -81,20 +82,15 @@ const putUser = async( req=request, res=response ) => {
     });
 };
 
-const deleteUser = ( req=request, res=response ) => {
-    const query = req.query;
-    //podemos desestructurar las propiedades que vienen en los query params
-    const {
-        q,
-        name='Not name',
-        age='Not age'
-    } = query;
+const deleteUser = async ( req=request, res=response ) => {
+    const { id } = req.params;
+
+    // await User.findByIdAndDelete( id );
+    const userUpdateState = await User.findByIdAndUpdate( id, { state: false } );
 
     res.status(200).json({
-        "msg": "getUser success",
-        q,
-        name,
-        age
+        id,
+        userUpdateState
     });
 };
 
